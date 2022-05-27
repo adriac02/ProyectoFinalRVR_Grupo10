@@ -25,35 +25,36 @@ int main(int argc, char *argv[])
     // creates a renderer to render our images
     SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-    // creates a surface to load an image into the main memory
+
     SDL_Surface* surface;
-
-    // please provide a path for your image
     surface = IMG_Load("Assets/pato.png");
-    
-
-    // loads image to our graphics hardware memory.
     SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
     SDL_RenderCopy(rend, tex, NULL, NULL);
     SDL_RenderPresent(rend);
+
     // clears main-memory
     SDL_FreeSurface(surface);
 
-    
-    // let us control our image position
-    // so that we can move it with our keyboard.
     SDL_Rect dest;
-
-    // connects our texture with dest to control position
     SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
-
     dest.w /= 6;
     dest.h /= 6;
-    // sets initial x-position of object
     dest.x = (1000 - dest.w) / 2;
-
-    // sets initial y-position of object
     dest.y = (1000 - dest.h) / 2;
+
+    SDL_Surface* pastoSurf;
+    pastoSurf = IMG_Load("Assets/pasto.png");
+    SDL_Texture* pastoTex = SDL_CreateTextureFromSurface(rend, pastoSurf);
+    SDL_RenderCopy(rend, pastoTex, NULL, NULL);
+    SDL_RenderPresent(rend);
+
+    // clears main-memory
+    SDL_FreeSurface(pastoSurf);
+    
+    SDL_Rect pastoDest;
+    SDL_QueryTexture(pastoTex, NULL, NULL, &pastoDest.w, &pastoDest.h);
+    pastoDest.x = (1000 - pastoDest.w) / 2;
+    pastoDest.y = ((1000 - pastoDest.h) / 2) + 50;
 
 
     bool close = 0;
@@ -77,10 +78,11 @@ int main(int argc, char *argv[])
 
         
 
-        SDL_SetRenderDrawColor( rend, 0, 255, 0, 255 );
-        //SDL_RenderClear(rend);
+        SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
+        SDL_RenderClear(rend);
 
         SDL_RenderCopy(rend, tex, NULL, &dest);
+        SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
 
         // SDL_Rect r;
         // r.x = 50;
