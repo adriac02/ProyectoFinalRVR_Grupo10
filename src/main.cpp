@@ -1,102 +1,122 @@
-//Prueba
-// std 
-#include <stdio.h>
-
-// opengl
-#include <GL/glew.h>
-
-// sdl
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_timer.h>
 
-#define SCREEN_SIZE_X 800
-#define SCREEN_SIZE_Y 600
-
-int main (int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    // ----- Initialize SDL
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        fprintf(stderr, "SDL could not initialize\n");
-        return 1;
-    }
+    // returns zero on success else non-zero
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
+        printf("error initializing SDL: %s\n", SDL_GetError());
 
-    // ----- Create window
-    SDL_Window* window = SDL_CreateWindow("My Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-    if (!window)
-    {
-        fprintf(stderr, "Error creating window.\n");
-        return 2;
-    }
+    SDL_Window* win = SDL_CreateWindow("GAME", // creates a window
+                                       SDL_WINDOWPOS_CENTERED,
+                                       SDL_WINDOWPOS_CENTERED,
+                                       1000, 1000, 0);
 
-    // ----- SDL OpenGL settings
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    int flags = IMG_INIT_JPG | IMG_INIT_PNG;     
+    int initted = IMG_Init(flags);     
+    if ((initted & flags) != flags)         
+    printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
 
-    // ----- SDL OpenGL context
-    SDL_GLContext glContext = SDL_GL_CreateContext(window);
+    // triggers the program that controls
+    // your graphics hardware and sets flags
+    Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
-    // ----- SDL v-sync
-    SDL_GL_SetSwapInterval(1);
+    // creates a renderer to render our images
+    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-    // ----- GLEW
-    glewInit();
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // creates a surface to load an image into the main memory
+    SDL_Surface* surface;
 
-    // ----- Game loop
-    bool quit = false;
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    // please provide a path for your image
+    surface = IMG_Load("Assets/pato.png");
+    
 
-    while (quit == false)
-    {
-        SDL_Event windowEvent;
+    // loads image to our graphics hardware memory.
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
+    SDL_RenderCopy(rend, tex, NULL, NULL);
+    SDL_RenderPresent(rend);
+    // clears main-memory
+    SDL_FreeSurface(surface);
 
-        while (SDL_PollEvent(&windowEvent))
-        {
-            SDL_Texture* t = nullptr;
-            SDL_Rect r; 
-            r.x = 20;
-            r.y = 20;
-            r.w = 50;
-            r.h = 50;
-            SDL_Surface* surface = IMG_Load("../Assets/calvoLoco.jpeg");
-            SDL_RendererFlip flip;
+    
+    // let us control our image position
+    // so that we can move it with our keyboard.
+    SDL_Rect dest;
 
-            SDL_Rect src; 
-            src.x = 0;
-            src.y = 0;
-            src.w = surface->w;
-            src.h = surface->h;
+    // connects our texture with dest to control position
+    SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+
+    dest.w /= 6;
+    dest.h /= 6;
+    // sets initial x-position of object
+    dest.x = (1000 - dest.w) / 2;
+
+    // sets initial y-position of object
+    dest.y = (1000 - dest.h) / 2;
 
 
-            t = SDL_CreateTextureFromSurface(renderer, surface);
+    bool close = 0;
 
+    // animation loop
+    while (!close) {
+        SDL_Event event;
 
-            SDL_RenderCopyEx(renderer, t, &src, &r, 0, 0, flip);
+        // Events management
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
 
-            if (windowEvent.type == SDL_QUIT)
-            {
-                quit = true;
+            case SDL_QUIT:
+                // handling of close button
+                close = 1;
+                break;
+            default:
                 break;
             }
         }
 
-        /*
-            do drawing here
-        */
+        
 
-        SDL_GL_SwapWindow(window);
+        SDL_SetRenderDrawColor( rend, 0, 255, 0, 255 );
+        //SDL_RenderClear(rend);
+
+        SDL_RenderCopy(rend, tex, NULL, &dest);
+
+        // SDL_Rect r;
+        // r.x = 50;
+        // r.y = 50;
+        // r.w = 150;
+        // r.h = 150;
+
+        // // Set render color to blue ( rect will be rendered in this color )
+        // SDL_SetRenderDrawColor( rend, 0, 0, 255, 255 );
+
+        // // Render rect
+        // SDL_RenderFillRect( rend, &r );
+
+        // clears the screen
+        // SDL_RenderClear(rend);
+        // SDL_RenderCopy(rend, tex, NULL, &dest);
+
+        // triggers the double buffers
+        // for multiple rendering
+        SDL_RenderPresent(rend);
+
+        // calculates to 60 fps
+        SDL_Delay(1000 / 60);
     }
 
-    // ----- Clean up
-    SDL_GL_DeleteContext(glContext);
+    // destroy texture
+    SDL_DestroyTexture(tex);
+
+    // destroy renderer
+    SDL_DestroyRenderer(rend);
+
+    // destroy window
+    SDL_DestroyWindow(win);
+
+    // close SDL
+    SDL_Quit();
 
     return 0;
 }
