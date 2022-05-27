@@ -7,6 +7,7 @@
 
 // sdl
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #define SCREEN_SIZE_X 800
 #define SCREEN_SIZE_Y 600
@@ -51,11 +52,35 @@ int main (int argc, char* argv[])
 
     // ----- Game loop
     bool quit = false;
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
     while (quit == false)
     {
         SDL_Event windowEvent;
+
         while (SDL_PollEvent(&windowEvent))
         {
+            SDL_Texture* t = nullptr;
+            SDL_Rect r; 
+            r.x = 20;
+            r.y = 20;
+            r.w = 50;
+            r.h = 50;
+            SDL_Surface* surface = IMG_Load("../Assets/calvoLoco.jpeg");
+            SDL_RendererFlip flip;
+
+            SDL_Rect src; 
+            src.x = 0;
+            src.y = 0;
+            src.w = surface->w;
+            src.h = surface->h;
+
+
+            t = SDL_CreateTextureFromSurface(renderer, surface);
+
+
+            SDL_RenderCopyEx(renderer, t, &src, &r, 0, 0, flip);
+
             if (windowEvent.type == SDL_QUIT)
             {
                 quit = true;
