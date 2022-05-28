@@ -1,6 +1,7 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_timer.h>
+#include "GameObject.h"
+
+float duckSpawningTime = 5000;
+float timeSinceLastSpawn = 0;
 
 int main(int argc, char *argv[])
 {
@@ -76,6 +77,13 @@ int main(int argc, char *argv[])
             }
         }
 
+        if(timeSinceLastSpawn >= duckSpawningTime){
+            //Spawn a duck
+
+
+            timeSinceLastSpawn = 0;
+        }
+        else timeSinceLastSpawn = timeSinceLastSpawn + SDL_GetTicks();
         
 
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
@@ -83,22 +91,6 @@ int main(int argc, char *argv[])
 
         SDL_RenderCopy(rend, tex, NULL, &dest);
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
-
-        // SDL_Rect r;
-        // r.x = 50;
-        // r.y = 50;
-        // r.w = 150;
-        // r.h = 150;
-
-        // // Set render color to blue ( rect will be rendered in this color )
-        // SDL_SetRenderDrawColor( rend, 0, 0, 255, 255 );
-
-        // // Render rect
-        // SDL_RenderFillRect( rend, &r );
-
-        // clears the screen
-        // SDL_RenderClear(rend);
-        // SDL_RenderCopy(rend, tex, NULL, &dest);
 
         // triggers the double buffers
         // for multiple rendering
