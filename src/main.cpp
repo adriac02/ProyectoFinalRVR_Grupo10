@@ -1,8 +1,11 @@
 #include "Duck.h"
 #include <vector>
 
-float duckSpawningTime = 5000;
+float duckSpawningTime = 15000;
 float timeSinceLastSpawn = 0;
+
+float winH = 1000;
+float winW = 1000;
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +16,7 @@ int main(int argc, char *argv[])
     SDL_Window* win = SDL_CreateWindow("GAME", // creates a window
                                        SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
-                                       1000, 1000, 0);
+                                       winW, winH, 0);
 
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;     
     int initted = IMG_Init(flags);     
@@ -39,8 +42,8 @@ int main(int argc, char *argv[])
 
     SDL_Rect dest;
     SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
-    dest.w /= 6;
-    dest.h /= 6;
+    dest.w /= 10;
+    dest.h /= 10;
     dest.x = (1000 - dest.w) / 2;
     dest.y = (1000 - dest.h) / 2;
 
@@ -61,10 +64,13 @@ int main(int argc, char *argv[])
 
     bool close = 0;
 
-    
+    std::vector<Duck*> ducks;
+
     Duck* duckie = new Duck(rend, tex);
     duckie->setPos(dest.x, dest.y);
     duckie->setSize(dest.w, dest.h);
+
+    ducks.push_back(duckie);
     // animation loop
     while (!close) {
         SDL_RenderClear(rend);
@@ -85,13 +91,26 @@ int main(int argc, char *argv[])
 
         if(timeSinceLastSpawn >= duckSpawningTime){
             //Spawn a duck
+            Duck* d = new Duck(rend, tex);
 
+            int x,y;
+
+            x = rand() % (int)winW;
+            y = rand() % (int)winH;
+
+            d->setPos(x, y);
+            d->setSize(dest.w, dest.h);
+
+            ducks.push_back(d);
 
             timeSinceLastSpawn = 0;
         }
         else timeSinceLastSpawn = timeSinceLastSpawn + SDL_GetTicks();
         
-        duckie->render();
+        for(auto d : ducks){
+            d->render();
+        }
+
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
 
