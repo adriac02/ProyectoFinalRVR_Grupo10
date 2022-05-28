@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
     duckie->setSize(dest.w, dest.h);
 
     ducks.push_back(duckie);
+
+    SDL_Point click;
     // animation loop
     while (!close) {
         SDL_RenderClear(rend);
@@ -83,6 +85,21 @@ int main(int argc, char *argv[])
             case SDL_QUIT:
                 // handling of close button
                 close = 1;
+                break;
+
+                case SDL_MOUSEBUTTONDOWN:
+
+                if(event.button.button == SDL_BUTTON_LEFT){
+
+                    click.x = event.motion.x;
+                    click.y = event.motion.y;
+
+                    for (auto d : ducks)
+                    {
+                        d->checkShot(click);
+                    }
+                    
+                }
                 break;
             default:
                 break;
@@ -115,8 +132,10 @@ int main(int argc, char *argv[])
         
         for(auto d : ducks){
             d->update();
-            d->render();
+            if(d->alive)d->render();
         }
+
+
 
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
