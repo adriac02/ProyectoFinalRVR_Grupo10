@@ -9,3 +9,11 @@ Duck::~Duck()
 {
 
 }
+
+void Duck::update(){
+    dest.x += vel;
+}
+
+void Duck::setVel(){
+    vel = -vel;
+}

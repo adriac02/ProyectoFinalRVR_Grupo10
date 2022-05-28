@@ -1,7 +1,7 @@
 #include "Duck.h"
 #include <vector>
 
-float duckSpawningTime = 15000;
+float duckSpawningTime = 15;
 float timeSinceLastSpawn = 0;
 
 float winH = 1000;
@@ -93,21 +93,28 @@ int main(int argc, char *argv[])
             //Spawn a duck
             Duck* d = new Duck(rend, tex);
 
+            int side = rand() % 2;
             int x,y;
 
-            x = rand() % (int)winW;
+            if(side == 0){
+              x = 0;      
+            }
+            else x = winW;
             y = rand() % (int)winH;
 
             d->setPos(x, y);
             d->setSize(dest.w, dest.h);
 
+            if(side == 1) d->setVel();
+
             ducks.push_back(d);
 
             timeSinceLastSpawn = 0;
         }
-        else timeSinceLastSpawn = timeSinceLastSpawn + SDL_GetTicks();
+        else timeSinceLastSpawn++;
         
         for(auto d : ducks){
+            d->update();
             d->render();
         }
 
