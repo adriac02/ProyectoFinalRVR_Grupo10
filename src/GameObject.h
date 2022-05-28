@@ -6,9 +6,9 @@ class GameObject
 {
 private:
     //Necessary for rendering
-    SDL_Renderer* render = nullptr;
+    SDL_Renderer* renderer = nullptr;
     SDL_Texture* text = nullptr;
-    SDL_Rect* dest;
+    SDL_Rect dest;
 
 public:
     GameObject(SDL_Renderer* r, SDL_Texture* t);
@@ -16,4 +16,6 @@ public:
 
     void setPos(int x, int y);
     void setSize(int w, int h);
+
+    virtual void render();
 };

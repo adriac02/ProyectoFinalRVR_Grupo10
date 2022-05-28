@@ -1,4 +1,5 @@
-#include "GameObject.h"
+#include "Duck.h"
+#include <vector>
 
 float duckSpawningTime = 5000;
 float timeSinceLastSpawn = 0;
@@ -60,8 +61,13 @@ int main(int argc, char *argv[])
 
     bool close = 0;
 
+    
+    Duck* duckie = new Duck(rend, tex);
+    duckie->setPos(dest.x, dest.y);
+    duckie->setSize(dest.w, dest.h);
     // animation loop
     while (!close) {
+        SDL_RenderClear(rend);
         SDL_Event event;
 
         // Events management
@@ -85,12 +91,11 @@ int main(int argc, char *argv[])
         }
         else timeSinceLastSpawn = timeSinceLastSpawn + SDL_GetTicks();
         
-
+        duckie->render();
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
-        SDL_RenderClear(rend);
-
-        SDL_RenderCopy(rend, tex, NULL, &dest);
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
+
+        //SDL_RenderCopy(rend, tex, NULL, &dest);
 
         // triggers the double buffers
         // for multiple rendering
