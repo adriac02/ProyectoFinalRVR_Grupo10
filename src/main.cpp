@@ -66,13 +66,11 @@ int main(int argc, char *argv[])
 
     std::vector<Duck*> ducks;
 
-    Duck* duckie = new Duck(rend, tex);
-    duckie->setPos(dest.x, dest.y);
-    duckie->setSize(dest.w, dest.h);
-
-    ducks.push_back(duckie);
-
     SDL_Point click;
+
+    int points = 0;
+
+    
     // animation loop
     while (!close) {
         SDL_RenderClear(rend);
@@ -129,12 +127,18 @@ int main(int argc, char *argv[])
             timeSinceLastSpawn = 0;
         }
         else timeSinceLastSpawn++;
+
+        for(int i=0; i < ducks.size(); i++){
+            if(!ducks[i]->alive){
+                delete ducks[i];
+                ducks.erase(ducks.begin() + i);
+            }
+        }
         
         for(auto d : ducks){
             d->update();
-            if(d->alive)d->render();
+            d->render();
         }
-
 
 
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
