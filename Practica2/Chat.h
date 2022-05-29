@@ -37,7 +37,8 @@ public:
     {
         LOGIN   = 0,
         MESSAGE = 1,
-        LOGOUT  = 2
+        LOGOUT  = 2,
+        NEWPATO = 3
     };
 
     ChatMessage(){};
@@ -52,6 +53,8 @@ public:
 
     std::string nick;
     std::string message;
+
+    std::pair<int,int> xy;
 };
 
 // -----------------------------------------------------------------------------
@@ -62,7 +65,11 @@ public:
  */
 class ChatServer
 {
+
+    
+
 public:
+
     ChatServer(const char * s, const char * p): socket(s, p)
     {
         socket.bind();
@@ -74,7 +81,16 @@ public:
      */
     void do_messages();
 
+    void game_loop();
+
 private:
+
+    float winH = 1000;
+    float winW = 1000;
+    
+    int duckSpawningTime = 50000000;
+    int timeSinceLastSpawn = 0;
+
     /**
      *  Lista de clientes conectados al servidor de Chat, representados por
      *  su socket
@@ -103,6 +119,8 @@ class ChatClient
     SDL_Texture* pastoTex;
     SDL_Rect dest;
     SDL_Rect pastoDest;
+
+    bool close = false;
 
     std::vector<Duck*> ducks;
 
@@ -140,6 +158,10 @@ public:
      *  en STDOUT
      */
     void net_thread();
+
+    void game_thread();
+
+    void createPato(std::pair<int,int> xy);
 
 private:
 

@@ -2,8 +2,8 @@ CC=g++
 CXXFLAGS=-std=c++11 -Wall -g
 CFLAGS=-g -I. -lSDL2 -lGL -lGLEW -lSDL2_image
 LDFLAGS=-lSDL2 -lGL -lGLEW -lSDL2_image
-DEPS = Socket.h Chat.h
-OBJ = Socket.o Chat.o
+DEPS = Socket.h Chat.h Duck.h GameObject.h
+OBJ = Socket.o Chat.o Duck.o GameObject.o
 LIBS=-lpthread
 
 %.o: %.cc $(DEPS)
