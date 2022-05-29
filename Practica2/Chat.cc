@@ -1,6 +1,4 @@
 #include "Chat.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -118,10 +116,11 @@ void ChatClient::login()
 
     // SDL PART
 
+    // returns zero on success else non-zero
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
         printf("error initializing SDL: %s\n", SDL_GetError());
 
-    SDL_Window* win = SDL_CreateWindow("GAME", // creates a window
+    win = SDL_CreateWindow("GAME", // creates a window
                                        SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
                                        winW, winH, 0);
@@ -136,7 +135,36 @@ void ChatClient::login()
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
     // creates a renderer to render our images
-    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
+    rend = SDL_CreateRenderer(win, -1, render_flags);
+
+
+    SDL_Surface* surface;
+    surface = IMG_Load("Assets/pato.png");
+    tex = SDL_CreateTextureFromSurface(rend, surface);
+    SDL_RenderCopy(rend, tex, NULL, NULL);
+    SDL_RenderPresent(rend);
+
+    // clears main-memory
+    SDL_FreeSurface(surface);
+
+
+    SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+    dest.w /= 10;
+    dest.h /= 10;
+    dest.x = (1000 - dest.w) / 2;
+    dest.y = (1000 - dest.h) / 2;
+
+    SDL_Surface* pastoSurf;
+    pastoSurf = IMG_Load("Assets/pasto.png");
+    pastoTex = SDL_CreateTextureFromSurface(rend, pastoSurf);
+
+    // clears main-memory
+    SDL_FreeSurface(pastoSurf);
+    
+
+    SDL_QueryTexture(pastoTex, NULL, NULL, &pastoDest.w, &pastoDest.h);
+    pastoDest.x = (1000 - pastoDest.w) / 2;
+    pastoDest.y = ((1000 - pastoDest.h) / 2) + 50;
 
 }
 
@@ -154,20 +182,31 @@ void ChatClient::logout()
 void ChatClient::input_thread()
 {
     while (true)
-    {
-        // Leer stdin con std::getline
-        // Enviar al servidor usando socket
-        std::string msg;
-        std::getline(std::cin,msg);
+    {   
 
-        if(msg=="q"){
-            logout();
-        }
-        else{
-            ChatMessage msgC(nick,msg);
-            msgC.type = ChatMessage::MESSAGE;
-            socket.send(msgC, socket);
-        }
+        std::cout << "Homaero vas a ir a tomar cerveza" << "\n";
+        SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
+        SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
+
+        //SDL_RenderCopy(rend, tex, NULL, &dest);
+
+        // triggers the double buffers
+        // for multiple rendering
+        SDL_RenderPresent(rend);
+
+        // calculates to 60 fps
+        SDL_Delay(1000 / 60);
+
+        std::string msg = "";
+
+        // if(msg=="q"){
+        //     logout();
+        // }
+        // else{
+        //     ChatMessage msgC(nick,msg);
+        //     msgC.type = ChatMessage::MESSAGE;
+        //     socket.send(msgC, socket);
+        // }
     }
 }
 

@@ -6,6 +6,7 @@
 
 #include "Serializable.h"
 #include "Socket.h"
+#include "Duck.h"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -25,8 +26,6 @@
  *
  */
 
-    float winH = 1000;
-    float winW = 1000;
 
     
 class ChatMessage: public Serializable
@@ -96,6 +95,21 @@ private:
  */
 class ChatClient
 {
+    float winH = 1000;
+    float winW = 1000;
+    SDL_Window* win;
+    SDL_Renderer* rend;  
+    SDL_Texture* tex;
+    SDL_Texture* pastoTex;
+    SDL_Rect dest;
+    SDL_Rect pastoDest;
+
+    std::vector<Duck*> ducks;
+
+    SDL_Point click;
+
+    int points = 0;
+
 public:
     /**
      * @param s dirección del servidor
