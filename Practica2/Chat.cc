@@ -1,6 +1,5 @@
 #include "Chat.h"
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -70,6 +69,10 @@ void ChatServer::do_messages()
         {
             std::cout << "Conectado:" << msg.nick << "\n";
             clients.push_back(std::move(std::make_unique<Socket>(*sock)));
+            if (clients.size() > 1)
+            {
+                initClient();
+            }
         }
         else if (msg.type == ChatMessage::LOGOUT)
         {
@@ -90,7 +93,11 @@ void ChatServer::do_messages()
                 delete del;
             }
         }
-        else if (ChatMessage::MESSAGE || ChatMessage::DELETE)
+        else if (msg.type == ChatMessage::INFO)
+        {
+            socket.send(msg, *clients.back());
+        }
+        else if (msg.type == ChatMessage::MESSAGE || msg.type == ChatMessage::DELETE)
         {
             for (int i = 0; i < clients.size(); ++i)
             {
@@ -105,37 +112,58 @@ void ChatServer::do_messages()
 
 /**
  * Game Loop que lleva el Server, desde el que se crean los patos
- * 
+ *
  */
-void ChatServer::game_loop(){
-    while(true){
-        if(clients.size() == 2){
-            if(timeSinceLastSpawn >= duckSpawningTime){
+void ChatServer::game_loop()
+{
+    while (true)
+    {
+        if (!clients.empty())
+        {
+            if (timeSinceLastSpawn >= duckSpawningTime)
+            {
                 ChatMessage msg;
                 msg.type = ChatMessage::NEWPATO;
                 msg.nick = "Server";
 
                 int side = rand() % 2;
-                int x,y;
-                if(side == 0){
-                    x = 0;      
+                int x, y;
+                if (side == 0)
+                {
+                    x = 0;
                 }
-                else x = winW;
-                y = rand() % (int)(winH/2);
+                else
+                    x = winW;
+                y = rand() % (int)(winH / 2);
 
                 int gold = rand() % 10;
                 msg.message = std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(gold);
-                
+
                 for (int i = 0; i < clients.size(); ++i)
                 {
                     socket.send(msg, *clients[i]);
                 }
-                
+
                 timeSinceLastSpawn = 0;
             }
-            else ++timeSinceLastSpawn;
-        } 
+            else
+                ++timeSinceLastSpawn;
+        }
     }
+}
+
+/**
+ * Funcion que manda mensaje al primer cliente para actualizar la información a los nuevos que se unan
+ *
+ */
+
+void ChatServer::initClient()
+{
+    ChatMessage m;
+    m.type = ChatMessage::NEWCLIENT;
+    m.nick = "Server";
+    m.message = "New client, send info";
+    socket.send(m, *clients[0]);
 }
 
 // -----------------------------------------------------------------------------
@@ -143,17 +171,10 @@ void ChatServer::game_loop(){
 
 /**
  * Login del cliente, manda un mensaje de Login al server e inicializa SDL y todo lo necesario para el juego
- * 
+ *
  */
 void ChatClient::login()
 {
-    std::string msg;
-
-    ChatMessage em(nick, msg);
-    em.type = ChatMessage::LOGIN;
-
-    socket.send(em, socket);
-
     // SDL PART
 
     // returns zero on success else non-zero
@@ -174,7 +195,8 @@ void ChatClient::login()
     // your graphics hardware and sets flags
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
-    if(TTF_Init()==-1){
+    if (TTF_Init() == -1)
+    {
         printf("TTF_Init: %s\n", TTF_GetError());
     }
 
@@ -223,22 +245,30 @@ void ChatClient::login()
     pastoDest.y = ((1000 - pastoDest.h) / 2) + 50;
 
     int fontSize = 128;
-    text_color = {255,255,255};
+    text_color = {255, 255, 255};
     std::string fontpath = "../Assets/discoduck3dital.ttf";
-    font = TTF_OpenFont(fontpath.c_str(), fontSize); 
-    text_surface = TTF_RenderText_Solid(font,std::to_string(points).c_str(),text_color);
+    font = TTF_OpenFont(fontpath.c_str(), fontSize);
+    text_surface = TTF_RenderText_Solid(font, std::to_string(points).c_str(), text_color);
     ftexture = SDL_CreateTextureFromSurface(rend, text_surface);
     t_width = text_surface->w;
     t_height = text_surface->h;
-    textDst.x= winW/2;
-    textDst.y= 50;
+    textDst.x = winW / 2;
+    textDst.y = 50;
     textDst.w = t_width;
     textDst.h = t_height;
+
+    // Login message
+    std::string msg;
+
+    ChatMessage em(nick, msg);
+    em.type = ChatMessage::LOGIN;
+
+    socket.send(em, socket);
 }
 
 /**
  * Cierra SDL y manda mensaje de Logout al server
- * 
+ *
  */
 void ChatClient::logout()
 {
@@ -277,34 +307,83 @@ void ChatClient::net_thread()
 
         std::cout << msg.nick << ": " << msg.message << "\n";
 
-        if(msg.type == ChatMessage::NEWPATO){
-            
+        if (msg.type == ChatMessage::NEWPATO)
+        {
+
             std::stringstream ss(msg.message);
             std::string word;
-            std::pair<int,int> xy;
+            std::pair<int, int> xy;
             ss >> word;
             xy.first = stoi(word);
             ss >> word;
             xy.second = stoi(word);
             ss >> word;
-            if(stoi(word) == 1){
-                createPato(xy,true);
+            if (stoi(word) == 1)
+            {
+                createPato(xy, true);
             }
-            else createPato(xy,false);
-            
-
+            else
+                createPato(xy, false);
+        }
+        else if (msg.type == ChatMessage::DELETE)
+        {
+            ducks[stoi(msg.message)]->alive = false;
+        }
+        else if (msg.type == ChatMessage::NEWCLIENT)
+        {
+            ChatMessage m;
+            m.type = ChatMessage::INFO;
+            m.nick = nick;
+            for (Duck *d : ducks)
+            {
+                m.message = std::to_string(d->getX()) + " " + std::to_string(d->getY()) + " " + std::to_string(d->vel) + " " + std::to_string(d->gold);
+                socket.send(m, socket);
+            }
             
         }
+        else if (msg.type == ChatMessage::INFO)
+        {
+            std::stringstream ss(msg.message);
+            std::string word;
+            std::pair<int, int> xy;
+            int vel;
+            ss >> word;
+            xy.first = stoi(word);
+            ss >> word;
+            xy.second = stoi(word);
+            ss >> word;
+            vel = stoi(word);
+            ss >> word;
+            if (stoi(word) == 1)
+            {
+                Duck *d = new Duck(rend, goldTex, true);
 
-        if(msg.type == ChatMessage::DELETE){
-            ducks[stoi(msg.message)]->alive = false;
+                d->setPos(xy.first, xy.second);
+                d->setSize(dest.w, dest.h);
+
+                d->updateVel(vel);
+                    
+
+                ducks.push_back(d);
+            }
+            else
+            {
+                Duck *d = new Duck(rend, tex, false);
+
+                d->setPos(xy.first, xy.second);
+                d->setSize(dest.w, dest.h);
+
+                d->updateVel(vel);
+
+                ducks.push_back(d);
+            }
         }
     }
 }
 
 /**
  * Bucle de juego para cada cliente
- * 
+ *
  */
 void ChatClient::game_thread()
 {
@@ -314,34 +393,39 @@ void ChatClient::game_thread()
         SDL_Event event;
 
         // Events management
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
 
             case SDL_QUIT:
                 // handling of close button
                 close = 1;
                 break;
 
-                case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONDOWN:
 
-                if(event.button.button == SDL_BUTTON_LEFT){
+                if (event.button.button == SDL_BUTTON_LEFT)
+                {
 
                     click.x = event.motion.x;
                     click.y = event.motion.y;
                     int i = 0;
-                    while(i < ducks.size() && !ducks[i]->checkShot(click)){
+                    while (i < ducks.size() && !ducks[i]->checkShot(click))
+                    {
                         ++i;
                     }
-                    if(i < ducks.size()){
-                        if(ducks[i]->gold)
-                            points+=500;
+                    if (i < ducks.size())
+                    {
+                        if (ducks[i]->gold)
+                            points += 500;
                         else
                             points += 100;
                         ChatMessage msg;
                         msg.type = ChatMessage::DELETE;
                         msg.nick = nick;
                         msg.message = std::to_string(i);
-                        socket.send(msg,socket);
+                        socket.send(msg, socket);
                     }
                 }
                 break;
@@ -349,38 +433,38 @@ void ChatClient::game_thread()
                 break;
             }
         }
-        for(int i=0; i < ducks.size(); i++){
-            if(!ducks[i]->alive){
+        for (int i = 0; i < ducks.size(); i++)
+        {
+            if (!ducks[i]->alive)
+            {
                 delete ducks[i];
                 ducks.erase(ducks.begin() + i);
             }
         }
-        
-        for(auto d : ducks){
+
+        for (auto d : ducks)
+        {
             d->update();
             d->render();
         }
 
-        
+        SDL_SetRenderDrawColor(rend, 0, 170, 255, 255);
 
-
-        SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
-        
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
 
-        //Render de la puntuación
-        text_surface = TTF_RenderText_Solid(font,std::to_string(points).c_str(),text_color);
+        // Render de la puntuación
+        text_surface = TTF_RenderText_Solid(font, std::to_string(points).c_str(), text_color);
         ftexture = SDL_CreateTextureFromSurface(rend, text_surface);
         t_width = text_surface->w;
         t_height = text_surface->h;
-        textDst.x= 20;
-        textDst.y= 0;
+        textDst.x = 20;
+        textDst.y = 0;
         textDst.w = t_width;
         textDst.h = t_height;
 
-        SDL_RenderCopy(rend,ftexture,NULL,&textDst);
+        SDL_RenderCopy(rend, ftexture, NULL, &textDst);
 
-        //SDL_RenderCopy(rend, tex, NULL, &dest);
+        // SDL_RenderCopy(rend, tex, NULL, &dest);
 
         // triggers the double buffers
         // for multiple rendering
@@ -394,31 +478,32 @@ void ChatClient::game_thread()
 /**
  * Crea un nuevo pato en cada cliente a partir de un mensaje del server
  * El mensaje contiene las coordenadas de aparición del pato, calculado por el server
- * @param xy 
+ * @param xy
  */
-void ChatClient::createPato(std::pair<int,int> xy, bool g){
-    if(g){
-        Duck* d = new Duck(rend, goldTex, true);
+void ChatClient::createPato(std::pair<int, int> xy, bool g)
+{
+    if (g)
+    {
+        Duck *d = new Duck(rend, goldTex, true);
 
+        d->setPos(xy.first, xy.second);
+        d->setSize(dest.w, dest.h);
 
-        d->setPos(xy.first,xy.second);
-        d->setSize(dest.w,dest.h);
-
-        if(xy.first == winW) d->setVel();
-
-        ducks.push_back(d);
-    }
-    else{
-        Duck* d = new Duck(rend, tex, false);
-
-
-        d->setPos(xy.first,xy.second);
-        d->setSize(dest.w,dest.h);
-
-        if(xy.first == winW) d->setVel();
+        if (xy.first == winW)
+            d->setVel();
 
         ducks.push_back(d);
     }
-    
+    else
+    {
+        Duck *d = new Duck(rend, tex, false);
 
+        d->setPos(xy.first, xy.second);
+        d->setSize(dest.w, dest.h);
+
+        if (xy.first == winW)
+            d->setVel();
+
+        ducks.push_back(d);
+    }
 }

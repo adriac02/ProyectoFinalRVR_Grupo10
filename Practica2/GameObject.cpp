@@ -19,6 +19,14 @@ void GameObject::setSize(int w, int h){
     dest.h = h;
 }
 
+int GameObject::getX(){
+    return dest.x;
+}
+
+int GameObject::getY(){
+    return dest.y;
+}
+
 void GameObject::render(){
     SDL_RenderCopy(renderer, text, NULL, &dest);
 }

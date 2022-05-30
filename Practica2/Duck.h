@@ -4,9 +4,10 @@ class Duck : public GameObject
 {
 private:
     /* data */
-float vel = 3;
+
 
 public:
+    float vel = 3;
     bool alive = true;
     int puntos = 10;
     bool gold = false;
@@ -18,6 +19,7 @@ public:
     bool checkShot(SDL_Point p);
 
     void setVel();
+    void updateVel(float v);
 };
 
 

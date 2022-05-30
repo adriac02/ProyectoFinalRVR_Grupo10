@@ -41,7 +41,9 @@ public:
         MESSAGE = 1,
         LOGOUT  = 2,
         NEWPATO = 3,
-        DELETE  = 4
+        DELETE  = 4,
+        NEWCLIENT = 5,
+        INFO = 6
     };
 
     ChatMessage(){};
@@ -84,12 +86,14 @@ public:
 
     void game_loop();
 
+    void initClient();
+
 private:
 
     float winH = 1000;
     float winW = 1000;
     
-    int duckSpawningTime = 500000000;
+    int duckSpawningTime = 50000000;
     int timeSinceLastSpawn = 0;
 
     /**

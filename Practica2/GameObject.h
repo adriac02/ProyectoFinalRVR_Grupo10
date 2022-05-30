@@ -20,6 +20,9 @@ public:
     void setPos(int x, int y);
     void setSize(int w, int h);
 
+    int getX();
+    int getY();
+
 
     virtual void render();
     virtual void update(){};
