@@ -89,7 +89,7 @@ void ChatServer::do_messages()
                 delete del;
             }
         }
-        else if (ChatMessage::MESSAGE)
+        else if (ChatMessage::MESSAGE || ChatMessage::DELETE)
         {
             for (int i = 0; i < clients.size(); ++i)
             {
@@ -102,6 +102,10 @@ void ChatServer::do_messages()
     }
 }
 
+/**
+ * Game Loop que lleva el Server, desde el que se crean los patos
+ * 
+ */
 void ChatServer::game_loop(){
     while(true){
         if(clients.size() == 2){
@@ -135,6 +139,10 @@ void ChatServer::game_loop(){
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+/**
+ * Login del cliente, manda un mensaje de Login al server e inicializa SDL y todo lo necesario para el juego
+ * 
+ */
 void ChatClient::login()
 {
     std::string msg;
@@ -194,6 +202,10 @@ void ChatClient::login()
     pastoDest.y = ((1000 - pastoDest.h) / 2) + 50;
 }
 
+/**
+ * Cierra SDL y manda mensaje de Logout al server
+ * 
+ */
 void ChatClient::logout()
 {
 
@@ -214,23 +226,10 @@ void ChatClient::logout()
     socket.send(em, socket);
 }
 
-void ChatClient::input_thread()
-{
-    while (true)
-    {
-        std::string msg = "";
-
-        // if(msg=="q"){
-        //     logout();
-        // }
-        // else{
-        //     ChatMessage msgC(nick,msg);
-        //     msgC.type = ChatMessage::MESSAGE;
-        //     socket.send(msgC, socket);
-        // }
-    }
-}
-
+/**
+ * Recibe los mensajes del server y de los otros clientes
+ * Además los procesa y hace cambios en su bucle interno
+ */
 void ChatClient::net_thread()
 {
     ChatMessage msg;
@@ -258,9 +257,17 @@ void ChatClient::net_thread()
 
             createPato(xy);
         }
+
+        if(msg.type == ChatMessage::DELETE){
+            ducks[stoi(msg.message)]->alive = false;
+        }
     }
 }
 
+/**
+ * Bucle de juego para cada cliente
+ * 
+ */
 void ChatClient::game_thread()
 {
     while (!close)
@@ -283,42 +290,23 @@ void ChatClient::game_thread()
 
                     click.x = event.motion.x;
                     click.y = event.motion.y;
-
-                    for (auto d : ducks)
-                    {
-                        d->checkShot(click);
+                    int i = 0;
+                    while(i < ducks.size() && !ducks[i]->checkShot(click)){
+                        ++i;
                     }
-                    
+                    if(i < ducks.size()){
+                        ChatMessage msg;
+                        msg.type = ChatMessage::DELETE;
+                        msg.nick = nick;
+                        msg.message = std::to_string(i);
+                        socket.send(msg,socket);
+                    }
                 }
                 break;
             default:
                 break;
             }
         }
-        // if(timeSinceLastSpawn >= duckSpawningTime){
-        //     //Spawn a duck
-        //     Duck* d = new Duck(rend, tex);
-
-        //     int side = rand() % 2;
-        //     int x,y;
-
-        //     if(side == 0){
-        //       x = 0;      
-        //     }
-        //     else x = winW;
-        //     y = rand() % (int)winH;
-
-        //     d->setPos(x, y);
-        //     d->setSize(dest.w, dest.h);
-
-        //     if(side == 1) d->setVel();
-
-        //     ducks.push_back(d);
-
-        //     timeSinceLastSpawn = 0;
-        // }
-        // else timeSinceLastSpawn++;
-
         for(int i=0; i < ducks.size(); i++){
             if(!ducks[i]->alive){
                 delete ducks[i];
@@ -346,6 +334,11 @@ void ChatClient::game_thread()
     }
 }
 
+/**
+ * Crea un nuevo pato en cada cliente a partir de un mensaje del server
+ * El mensaje contiene las coordenadas de aparición del pato, calculado por el server
+ * @param xy 
+ */
 void ChatClient::createPato(std::pair<int,int> xy){
 
     Duck* d = new Duck(rend, tex);

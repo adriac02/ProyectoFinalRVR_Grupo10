@@ -39,7 +39,8 @@ public:
         LOGIN   = 0,
         MESSAGE = 1,
         LOGOUT  = 2,
-        NEWPATO = 3
+        NEWPATO = 3,
+        DELETE  = 4
     };
 
     ChatMessage(){};
@@ -145,12 +146,6 @@ public:
      *  Envía el mensaje de logout al servidor
      */
     void logout();
-
-    /**
-     *  Rutina principal para el Thread de E/S. Lee datos de STDIN (std::getline)
-     *  y los envía por red vía el Socket.
-     */
-    void input_thread();
 
     /**
      *  Rutina del thread de Red. Recibe datos de la red y los "renderiza"

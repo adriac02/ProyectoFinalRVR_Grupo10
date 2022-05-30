@@ -10,10 +10,6 @@ int main(int argc, char **argv)
     }).detach();
 
     ec.login();
-
-    std::thread ([&ec](){
-        ec.input_thread();
-    }).detach();
     
     ec.game_thread();
 }

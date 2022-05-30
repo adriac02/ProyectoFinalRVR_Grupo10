@@ -19,6 +19,9 @@ void Duck::setVel(){
 }
 
 bool Duck::checkShot(SDL_Point p){
-    if(SDL_PointInRect(&p, &dest))
+    if(SDL_PointInRect(&p, &dest)){
         alive = false;
+        return true;
+    }
+    return false;
 }
