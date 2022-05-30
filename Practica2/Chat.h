@@ -128,7 +128,9 @@ class ChatClient
     SDL_Texture* tex;
     SDL_Texture* goldTex;
     SDL_Texture* pastoTex;
+    SDL_Texture* miraTex;
     SDL_Rect dest;
+    SDL_Rect miradest;
     SDL_Rect pastoDest;
 
     bool close = false;
@@ -136,7 +138,7 @@ class ChatClient
     std::vector<Duck*> ducks;
 
     SDL_Point click;
-
+    
     int points = 0;
 
     int t_width = 0;

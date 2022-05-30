@@ -234,25 +234,32 @@ void ChatClient::login()
     SDL_FreeSurface(surface);
 
     SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
-    dest.w /= 10;
-    dest.h /= 10;
-    dest.x = (1000 - dest.w) / 2;
-    dest.y = (1000 - dest.h) / 2;
 
     SDL_Surface *surface2;
     surface2 = IMG_Load("../Assets/patoDorado.png");
     goldTex = SDL_CreateTextureFromSurface(rend, surface2);
     SDL_RenderCopy(rend, goldTex, NULL, NULL);
     SDL_RenderPresent(rend);
-
-    // clears main-memory
-    SDL_FreeSurface(surface2);
-
     SDL_QueryTexture(goldTex, NULL, NULL, &dest.w, &dest.h);
+
+    SDL_Surface *surface3;
+    surface3 = IMG_Load("../Assets/mirilla.png");
+    miraTex = SDL_CreateTextureFromSurface(rend, surface3);
+    SDL_RenderCopy(rend, miraTex, NULL, NULL);
+    SDL_RenderPresent(rend);
+    SDL_QueryTexture(miraTex, NULL, NULL, &miradest.w, &miradest.h);
+    miradest.w /= 15;
+    miradest.h /= 15;
+
+
     dest.w /= 10;
     dest.h /= 10;
     dest.x = (1000 - dest.w) / 2;
     dest.y = (1000 - dest.h) / 2;
+
+    // clears main-memory
+    SDL_FreeSurface(surface2);
+    //SDL_FreeSurface(surface3);
 
     SDL_Surface *pastoSurf;
     pastoSurf = IMG_Load("../Assets/pasto.png");
@@ -454,6 +461,11 @@ void ChatClient::game_thread()
                     }
                 }
                 break;
+            case SDL_MOUSEMOTION:
+                miradest.x = event.motion.x - (miradest.w/2);
+                miradest.y = event.motion.y - (miradest.h/2);
+
+                break;
             default:
                 break;
             }
@@ -476,6 +488,7 @@ void ChatClient::game_thread()
         SDL_SetRenderDrawColor(rend, 0, 170, 255, 255);
 
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
+        SDL_RenderCopy(rend, miraTex, NULL, &miradest);
 
         // Render de la puntuación
         text_surface = TTF_RenderText_Solid(font, std::to_string(points).c_str(), text_color);
