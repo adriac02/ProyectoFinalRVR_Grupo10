@@ -95,8 +95,8 @@ private:
     float winH = 1000;
     float winW = 1000;
     
-    int duckSpawningTime = 50000000;
-    int timeSinceLastSpawn = 0;
+    int duckSpawningTime = 3;
+    std::chrono::time_point<std::chrono::system_clock> timeSinceLastSpawn;
 
     std::unordered_map<std::string,int> scoreboard;
 

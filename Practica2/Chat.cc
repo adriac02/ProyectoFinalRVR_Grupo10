@@ -1,4 +1,5 @@
 #include "Chat.h"
+#include <chrono>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -137,11 +138,16 @@ void ChatServer::do_messages()
  */
 void ChatServer::game_loop()
 {
+    timeSinceLastSpawn = std::chrono::high_resolution_clock::now();
+
     while (true)
     {
         if (!clients.empty())
         {
-            if (timeSinceLastSpawn >= duckSpawningTime)
+            //Timer truculento de C++ a pelo
+            std::chrono::duration<float> duration =std::chrono::high_resolution_clock::now() - timeSinceLastSpawn; 
+
+            if (duration.count() >= duckSpawningTime)
             {
                 ChatMessage msg;
                 msg.type = ChatMessage::NEWPATO;
@@ -165,10 +171,8 @@ void ChatServer::game_loop()
                     socket.send(msg, *clients[i]);
                 }
 
-                timeSinceLastSpawn = 0;
+                timeSinceLastSpawn = std::chrono::high_resolution_clock::now();
             }
-            else
-                ++timeSinceLastSpawn;
         }
     }
 }
