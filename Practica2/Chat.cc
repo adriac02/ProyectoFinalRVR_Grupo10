@@ -104,7 +104,7 @@ void ChatServer::do_messages()
 
 void ChatServer::game_loop(){
     while(true){
-        if(!clients.empty()){
+        if(clients.size() == 2){
             if(timeSinceLastSpawn >= duckSpawningTime){
                 ChatMessage msg;
                 msg.type = ChatMessage::NEWPATO;
@@ -117,12 +117,9 @@ void ChatServer::game_loop(){
                     x = 0;      
                 }
                 else x = winW;
-                y = rand() % (int)winH;
+                y = rand() % (int)(winH/2);
 
-                msg.xy.first = x;
-                msg.xy.second = y;
-
-
+                msg.message = std::to_string(x) + " " + std::to_string(y);
                 for (int i = 0; i < clients.size(); ++i)
                 {
                     socket.send(msg, *clients[i]);
@@ -248,7 +245,18 @@ void ChatClient::net_thread()
         std::cout << msg.nick << ": " << msg.message << "\n";
 
         if(msg.type == ChatMessage::NEWPATO){
-            createPato(msg.xy);
+            
+            std::stringstream ss(msg.message);
+            std::string word;
+            std::pair<int,int> xy;
+            ss >> word;
+            xy.first = stoi(word);
+            ss >> word;
+            xy.second = stoi(word);
+
+            
+
+            createPato(xy);
         }
     }
 }
@@ -339,11 +347,13 @@ void ChatClient::game_thread()
 }
 
 void ChatClient::createPato(std::pair<int,int> xy){
-    std::cout << xy.first << " " << xy.second << "\n";
 
     Duck* d = new Duck(rend, tex);
 
-    d->setPos(200,200);
+    //std::cout << xy.first << " " << xy.second << "\n";
+
+    d->setPos(xy.first,xy.second);
+    //d->setPos(winW,500);
     d->setSize(dest.w,dest.h);
 
     if(xy.first == winW) d->setVel();

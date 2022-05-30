@@ -1,6 +1,7 @@
 #include <string>
 #include <unistd.h>
 #include <string.h>
+#include <bits/stdc++.h>
 #include <vector>
 #include <memory>
 
@@ -53,8 +54,6 @@ public:
 
     std::string nick;
     std::string message;
-
-    std::pair<int,int> xy;
 };
 
 // -----------------------------------------------------------------------------
@@ -88,7 +87,7 @@ private:
     float winH = 1000;
     float winW = 1000;
     
-    int duckSpawningTime = 50000000;
+    int duckSpawningTime = 500000000;
     int timeSinceLastSpawn = 0;
 
     /**
