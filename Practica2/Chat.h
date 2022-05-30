@@ -4,6 +4,7 @@
 #include <bits/stdc++.h>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 #include "Serializable.h"
 #include "SDL2/SDL_ttf.h"
@@ -43,7 +44,8 @@ public:
         NEWPATO = 3,
         DELETE  = 4,
         NEWCLIENT = 5,
-        INFO = 6
+        INFO = 6,
+        UPDATESCORE=7
     };
 
     ChatMessage(){};
@@ -95,6 +97,8 @@ private:
     
     int duckSpawningTime = 50000000;
     int timeSinceLastSpawn = 0;
+
+    std::unordered_map<std::string,int> scoreboard;
 
     /**
      *  Lista de clientes conectados al servidor de Chat, representados por

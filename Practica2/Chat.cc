@@ -69,6 +69,18 @@ void ChatServer::do_messages()
         {
             std::cout << "Conectado:" << msg.nick << "\n";
             clients.push_back(std::move(std::make_unique<Socket>(*sock)));
+            auto sc = scoreboard.find(msg.nick);
+            if(sc == scoreboard.end()){
+                scoreboard[msg.nick] = 0;
+            }
+            else{
+                ChatMessage m;
+                m.type = ChatMessage::UPDATESCORE;
+                m.nick = "Server";
+                m.message = std::to_string(scoreboard[msg.nick]);
+                socket.send(m, *clients.back());
+
+            }
             if (clients.size() > 1)
             {
                 initClient();
@@ -87,6 +99,15 @@ void ChatServer::do_messages()
             }
             else
             {
+                auto sc = scoreboard.find(msg.nick);
+
+                if(sc == scoreboard.end()){
+                    printf("Cliente no encontrado\n");
+                }
+                else{
+                    scoreboard[msg.nick] = stoi(msg.message);
+                }
+
                 std::cout << "Desconectado:" << msg.nick << "\n";
                 clients.erase(it);
                 Socket *del = (*it).release();
@@ -286,7 +307,7 @@ void ChatClient::logout()
 
     ChatMessage em(nick, msg);
     em.type = ChatMessage::LOGOUT;
-
+    em.message = std::to_string(points);
     socket.send(em, socket);
 }
 
@@ -377,6 +398,10 @@ void ChatClient::net_thread()
 
                 ducks.push_back(d);
             }
+        }
+        else if(msg.type == ChatMessage::UPDATESCORE){
+            printf("Score updates\n");
+            points = stoi(msg.message);
         }
     }
 }
@@ -473,6 +498,7 @@ void ChatClient::game_thread()
         // calculates to 60 fps
         SDL_Delay(1000 / 60);
     }
+    logout();
 }
 
 /**
