@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Serializable.h"
+#include "SDL2/SDL_ttf.h"
 #include "Socket.h"
 #include "Duck.h"
 
@@ -115,7 +116,9 @@ class ChatClient
     float winW = 1000;
     SDL_Window* win;
     SDL_Renderer* rend;  
+    SDL_Texture* ftexture;
     SDL_Texture* tex;
+    SDL_Texture* goldTex;
     SDL_Texture* pastoTex;
     SDL_Rect dest;
     SDL_Rect pastoDest;
@@ -127,6 +130,13 @@ class ChatClient
     SDL_Point click;
 
     int points = 0;
+
+    int t_width = 0;
+    int t_height = 0;
+    TTF_Font* font;
+    SDL_Surface* text_surface;
+    SDL_Rect textDst;
+    SDL_Color text_color;
 
 public:
     /**
@@ -155,7 +165,7 @@ public:
 
     void game_thread();
 
-    void createPato(std::pair<int,int> xy);
+    void createPato(std::pair<int,int> xy, bool g);
 
 private:
 

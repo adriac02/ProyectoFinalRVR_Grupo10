@@ -1,8 +1,8 @@
 #include "Duck.h"
 
-Duck::Duck(SDL_Renderer* r, SDL_Texture* t) : GameObject(r,t)
+Duck::Duck(SDL_Renderer* r, SDL_Texture* t, bool g) : GameObject(r,t)
 {
-
+    gold = g;
 }
 
 Duck::~Duck()

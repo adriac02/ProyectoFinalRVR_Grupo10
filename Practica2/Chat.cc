@@ -1,5 +1,6 @@
 #include "Chat.h"
 
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -114,7 +115,6 @@ void ChatServer::game_loop(){
                 msg.type = ChatMessage::NEWPATO;
                 msg.nick = "Server";
 
-
                 int side = rand() % 2;
                 int x,y;
                 if(side == 0){
@@ -123,7 +123,9 @@ void ChatServer::game_loop(){
                 else x = winW;
                 y = rand() % (int)(winH/2);
 
-                msg.message = std::to_string(x) + " " + std::to_string(y);
+                int gold = rand() % 10;
+                msg.message = std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(gold);
+                
                 for (int i = 0; i < clients.size(); ++i)
                 {
                     socket.send(msg, *clients[i]);
@@ -172,6 +174,10 @@ void ChatClient::login()
     // your graphics hardware and sets flags
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
+    if(TTF_Init()==-1){
+        printf("TTF_Init: %s\n", TTF_GetError());
+    }
+
     // creates a renderer to render our images
     rend = SDL_CreateRenderer(win, -1, render_flags);
 
@@ -190,6 +196,21 @@ void ChatClient::login()
     dest.x = (1000 - dest.w) / 2;
     dest.y = (1000 - dest.h) / 2;
 
+    SDL_Surface *surface2;
+    surface2 = IMG_Load("../Assets/patoDorado.png");
+    goldTex = SDL_CreateTextureFromSurface(rend, surface2);
+    SDL_RenderCopy(rend, goldTex, NULL, NULL);
+    SDL_RenderPresent(rend);
+
+    // clears main-memory
+    SDL_FreeSurface(surface2);
+
+    SDL_QueryTexture(goldTex, NULL, NULL, &dest.w, &dest.h);
+    dest.w /= 10;
+    dest.h /= 10;
+    dest.x = (1000 - dest.w) / 2;
+    dest.y = (1000 - dest.h) / 2;
+
     SDL_Surface *pastoSurf;
     pastoSurf = IMG_Load("../Assets/pasto.png");
     pastoTex = SDL_CreateTextureFromSurface(rend, pastoSurf);
@@ -200,6 +221,19 @@ void ChatClient::login()
     SDL_QueryTexture(pastoTex, NULL, NULL, &pastoDest.w, &pastoDest.h);
     pastoDest.x = (1000 - pastoDest.w) / 2;
     pastoDest.y = ((1000 - pastoDest.h) / 2) + 50;
+
+    int fontSize = 128;
+    text_color = {255,255,255};
+    std::string fontpath = "../Assets/discoduck3dital.ttf";
+    font = TTF_OpenFont(fontpath.c_str(), fontSize); 
+    text_surface = TTF_RenderText_Solid(font,std::to_string(points).c_str(),text_color);
+    ftexture = SDL_CreateTextureFromSurface(rend, text_surface);
+    t_width = text_surface->w;
+    t_height = text_surface->h;
+    textDst.x= winW/2;
+    textDst.y= 50;
+    textDst.w = t_width;
+    textDst.h = t_height;
 }
 
 /**
@@ -252,10 +286,14 @@ void ChatClient::net_thread()
             xy.first = stoi(word);
             ss >> word;
             xy.second = stoi(word);
-
+            ss >> word;
+            if(stoi(word) == 1){
+                createPato(xy,true);
+            }
+            else createPato(xy,false);
             
 
-            createPato(xy);
+            
         }
 
         if(msg.type == ChatMessage::DELETE){
@@ -295,6 +333,10 @@ void ChatClient::game_thread()
                         ++i;
                     }
                     if(i < ducks.size()){
+                        if(ducks[i]->gold)
+                            points+=500;
+                        else
+                            points += 100;
                         ChatMessage msg;
                         msg.type = ChatMessage::DELETE;
                         msg.nick = nick;
@@ -319,9 +361,24 @@ void ChatClient::game_thread()
             d->render();
         }
 
+        
+
 
         SDL_SetRenderDrawColor( rend, 0, 170, 255, 255 );
+        
         SDL_RenderCopy(rend, pastoTex, NULL, &pastoDest);
+
+        //Render de la puntuación
+        text_surface = TTF_RenderText_Solid(font,std::to_string(points).c_str(),text_color);
+        ftexture = SDL_CreateTextureFromSurface(rend, text_surface);
+        t_width = text_surface->w;
+        t_height = text_surface->h;
+        textDst.x= 20;
+        textDst.y= 0;
+        textDst.w = t_width;
+        textDst.h = t_height;
+
+        SDL_RenderCopy(rend,ftexture,NULL,&textDst);
 
         //SDL_RenderCopy(rend, tex, NULL, &dest);
 
@@ -339,18 +396,29 @@ void ChatClient::game_thread()
  * El mensaje contiene las coordenadas de aparición del pato, calculado por el server
  * @param xy 
  */
-void ChatClient::createPato(std::pair<int,int> xy){
+void ChatClient::createPato(std::pair<int,int> xy, bool g){
+    if(g){
+        Duck* d = new Duck(rend, goldTex, true);
 
-    Duck* d = new Duck(rend, tex);
 
-    //std::cout << xy.first << " " << xy.second << "\n";
+        d->setPos(xy.first,xy.second);
+        d->setSize(dest.w,dest.h);
 
-    d->setPos(xy.first,xy.second);
-    //d->setPos(winW,500);
-    d->setSize(dest.w,dest.h);
+        if(xy.first == winW) d->setVel();
 
-    if(xy.first == winW) d->setVel();
+        ducks.push_back(d);
+    }
+    else{
+        Duck* d = new Duck(rend, tex, false);
 
-    ducks.push_back(d);
+
+        d->setPos(xy.first,xy.second);
+        d->setSize(dest.w,dest.h);
+
+        if(xy.first == winW) d->setVel();
+
+        ducks.push_back(d);
+    }
+    
 
 }
