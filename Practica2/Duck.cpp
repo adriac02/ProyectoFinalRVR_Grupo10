@@ -14,12 +14,7 @@ Duck::~Duck()
 
 void Duck::update(){
     dest.x += vel;
-
-    std::cout << "Dest:" <<dest.x << "\n";
-
-    std::cout << -dest.w  - offScreenOffset  << "\n";
     if(dest.x < -dest.w  - offScreenOffset || dest.w > winWidth + offScreenOffset){
-        std::cout << "Pato borrado";
         alive = false;
     } 
 }
