@@ -320,6 +320,13 @@ void ChatClient::logout()
     em.type = ChatMessage::LOGOUT;
     em.message = std::to_string(points);
     socket.send(em, socket);
+
+    delete goldTex;
+    delete pastoTex;
+
+    for(int i=0; i < ducks.size(); i++){
+        delete ducks[i];
+    }
 }
 
 /**
@@ -337,7 +344,7 @@ void ChatClient::net_thread()
         // Mostrar en pantalla el mensaje de la forma "nick: mensaje"
         socket.recv(msg, sock);
 
-        std::cout << msg.nick << ": " << msg.message << "\n";
+        //std::cout << msg.nick << ": " << msg.message << "\n";
 
         if (msg.type == ChatMessage::NEWPATO)
         {
@@ -411,7 +418,6 @@ void ChatClient::net_thread()
             }
         }
         else if(msg.type == ChatMessage::UPDATESCORE){
-            printf("Score updates\n");
             points = stoi(msg.message);
         }
     }
