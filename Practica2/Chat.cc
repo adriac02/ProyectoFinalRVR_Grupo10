@@ -70,6 +70,10 @@ void ChatServer::do_messages()
         {
             std::cout << "Conectado:" << msg.nick << "\n";
             clients.push_back(std::move(std::make_unique<Socket>(*sock)));
+
+            // Se ha añadido un mapa que asigna cada nickname con la puntuación que tuvo cuando cerró la sesión
+            // Si el servidor no se cierra y ese jugador se vuelve a unir, seguirá desde la misma puntuación
+
             auto sc = scoreboard.find(msg.nick);
             if(sc == scoreboard.end()){
                 scoreboard[msg.nick] = 0;
@@ -115,10 +119,13 @@ void ChatServer::do_messages()
                 delete del;
             }
         }
+        // Los mensajes de info se reenvian solo al ultimo jugador
+        // Son los mensajes encargados de crear los patos que ya están en pantalla
         else if (msg.type == ChatMessage::INFO)
         {
             socket.send(msg, *clients.back());
         }
+        // Los mensajes DELETE también se reenvían a todo el mundo menos al que ha matado al pato
         else if (msg.type == ChatMessage::MESSAGE || msg.type == ChatMessage::DELETE)
         {
             for (int i = 0; i < clients.size(); ++i)
@@ -144,11 +151,15 @@ void ChatServer::game_loop()
     {
         if (!clients.empty())
         {
-            //Timer truculento de C++ a pelo
+            //Timer de C++ hecho con chrono
+            //El timer espera X tiempo para crear un nuevo pato en todos los clientes
+
             std::chrono::duration<float> duration =std::chrono::high_resolution_clock::now() - timeSinceLastSpawn; 
 
             if (duration.count() >= duckSpawningTime)
             {
+                // Para crear el pato, el servidor decide aleatoriamente su posición inicial
+
                 ChatMessage msg;
                 msg.type = ChatMessage::NEWPATO;
                 msg.nick = "Server";
@@ -290,6 +301,8 @@ void ChatClient::login()
     textDst.h = t_height;
 
     // Login message
+    // Se hace el login después de inicializar SDL para evitar que pierda mensajes por el camino
+
     std::string msg;
 
     ChatMessage em(nick, msg);
@@ -304,6 +317,8 @@ void ChatClient::login()
  */
 void ChatClient::logout()
 {
+
+    // Logout y liberación de memoria
 
     SDL_DestroyRenderer(rend);
 
@@ -367,6 +382,9 @@ void ChatClient::net_thread()
         }
         else if (msg.type == ChatMessage::NEWCLIENT)
         {
+            // Cuando se crea un nuevo cliente, el primer cliente que ya estaba conectado manda
+            // la información de todos los patos que tiene en pantalla
+
             ChatMessage m;
             m.type = ChatMessage::INFO;
             m.nick = nick;
@@ -379,6 +397,8 @@ void ChatClient::net_thread()
         }
         else if (msg.type == ChatMessage::INFO)
         {
+            // Cuando el nuevo cliente rebice los mensajes de INFO empieza a crear todos los patos necesarios
+
             std::stringstream ss(msg.message);
             std::string word;
             std::pair<int, int> xy;
@@ -446,7 +466,7 @@ void ChatClient::game_thread()
 
                 if (event.button.button == SDL_BUTTON_LEFT)
                 {
-
+                    // Cuando se da click busca si le ha dado a un pato y manda el mensaje correspondiente
                     click.x = event.motion.x;
                     click.y = event.motion.y;
                     int i = 0;
@@ -469,6 +489,7 @@ void ChatClient::game_thread()
                 }
                 break;
             case SDL_MOUSEMOTION:
+                // Saber donde está el mouse para la mira
                 miradest.x = event.motion.x - (miradest.w/2);
                 miradest.y = event.motion.y - (miradest.h/2);
 

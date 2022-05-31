@@ -3,7 +3,10 @@
 
 int main(int argc, char **argv)
 {
-    if(argv[1]==nullptr){
+    // Si se ejecuta el ChatClient sin los argumentos necesarios salta un pequeño menú en la terminal
+    // La IP que hemos puesto para testear es 172.0.0.1
+    // Si se ejecuta con los argumentos necesarios se inicia como hacíamos hasta ahora
+    if(argv[1]==nullptr || argv[2]==nullptr || argv[3]==nullptr){
         printf("Introduce la IP a la que te quieres conectar: ");
         std::string ip;
         std::cin >> ip;
