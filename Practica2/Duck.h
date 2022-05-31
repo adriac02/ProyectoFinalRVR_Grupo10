@@ -4,7 +4,8 @@ class Duck : public GameObject
 {
 private:
     /* data */
-
+    int offScreenOffset = 30;
+    float winWidth = 0;
 
 public:
     float vel = 3;
@@ -12,7 +13,7 @@ public:
     int puntos = 10;
     bool gold = false;
 
-    Duck(SDL_Renderer* r, SDL_Texture* t, bool g);
+    Duck(SDL_Renderer* r, SDL_Texture* t, bool g, float winW);
     ~Duck();
 
     virtual void update();

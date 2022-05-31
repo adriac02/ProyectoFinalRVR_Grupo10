@@ -321,9 +321,6 @@ void ChatClient::logout()
     em.message = std::to_string(points);
     socket.send(em, socket);
 
-    delete goldTex;
-    delete pastoTex;
-
     for(int i=0; i < ducks.size(); i++){
         delete ducks[i];
     }
@@ -395,7 +392,7 @@ void ChatClient::net_thread()
             ss >> word;
             if (stoi(word) == 1)
             {
-                Duck *d = new Duck(rend, goldTex, true);
+                Duck *d = new Duck(rend, goldTex, true, winW);
 
                 d->setPos(xy.first, xy.second);
                 d->setSize(dest.w, dest.h);
@@ -407,7 +404,7 @@ void ChatClient::net_thread()
             }
             else
             {
-                Duck *d = new Duck(rend, tex, false);
+                Duck *d = new Duck(rend, tex, false, winW);
 
                 d->setPos(xy.first, xy.second);
                 d->setSize(dest.w, dest.h);
@@ -533,7 +530,7 @@ void ChatClient::createPato(std::pair<int, int> xy, bool g)
 {
     if (g)
     {
-        Duck *d = new Duck(rend, goldTex, true);
+        Duck *d = new Duck(rend, goldTex, true, winW);
 
         d->setPos(xy.first, xy.second);
         d->setSize(dest.w, dest.h);
@@ -545,7 +542,7 @@ void ChatClient::createPato(std::pair<int, int> xy, bool g)
     }
     else
     {
-        Duck *d = new Duck(rend, tex, false);
+        Duck *d = new Duck(rend, tex, false, winW);
 
         d->setPos(xy.first, xy.second);
         d->setSize(dest.w, dest.h);
